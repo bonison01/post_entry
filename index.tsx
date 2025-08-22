@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
-*/
+ */
 import { GoogleGenAI, Type } from '@google/genai';
 
 // This is a workaround for the fact that the google global object is not
@@ -57,6 +57,7 @@ const fileUploader = document.querySelector('.file-uploader');
 const connectGSheetButton = document.getElementById('connect-g-sheet-button') as HTMLButtonElement;
 const exportButton = document.getElementById('export-button') as HTMLButtonElement;
 const downloadCsvButton = document.getElementById('download-csv-button') as HTMLButtonElement;
+const copyButton = document.getElementById('copy-button') as HTMLButtonElement;
 const gSheetStatus = document.getElementById('g-sheet-status');
 const exportResult = document.getElementById('export-result');
 
@@ -135,11 +136,11 @@ function gisLoaded() {
         scope: SCOPES,
         callback: (tokenResponse) => {
              if (tokenResponse.error) {
-                displayError(`Google Auth Error: ${tokenResponse.error}`);
-                return;
-            }
-            gSheetStatus.textContent = 'Status: Connected';
-            updateButtonStates();
+                 displayError(`Google Auth Error: ${tokenResponse.error}`);
+                 return;
+             }
+             gSheetStatus.textContent = 'Status: Connected';
+             updateButtonStates();
         },
     });
 }
@@ -160,6 +161,7 @@ function updateButtonStates() {
     connectGSheetButton.disabled = isLoading || gSheetConnected;
     exportButton.disabled = isLoading || !dataAvailable || !gSheetConnected;
     downloadCsvButton.disabled = isLoading || !dataAvailable;
+    copyButton.disabled = isLoading || !dataAvailable;
 }
 
 /**
@@ -427,12 +429,41 @@ function handleDownloadCsv() {
     URL.revokeObjectURL(url);
 }
 
+/**
+ * Handles the copy action, copying the table data as a string without headers.
+ */
+async function handleCopyData() {
+    const tableElement = document.getElementById('results-body'); // Changed selector to target the tbody
+    if (!tableElement) {
+        displayError("No data to copy.");
+        return;
+    }
+
+    // Selects all rows within the tbody only
+    const tableText = Array.from(tableElement.querySelectorAll('tr'))
+        .map(row => Array.from(row.querySelectorAll('td')) // Selects only table data cells
+            .map(cell => cell.textContent)
+            .join('\t') // Use tab to separate columns
+        ).join('\n'); // Use newline for new rows
+
+    try {
+        await navigator.clipboard.writeText(tableText);
+        exportResult.textContent = 'Data copied to clipboard!';
+        exportResult.classList.remove('hidden', 'error');
+        exportResult.classList.add('success');
+    } catch (err) {
+        console.error('Failed to copy text:', err);
+        displayError('Failed to copy data. Please check browser permissions.');
+    }
+}
+
 // --- EVENT LISTENERS ---
 fileInput.addEventListener('change', handleFileChange);
 extractButton.addEventListener('click', handleExtractData);
 connectGSheetButton.addEventListener('click', handleAuthClick);
 exportButton.addEventListener('click', handleExportClick);
 downloadCsvButton.addEventListener('click', handleDownloadCsv);
+copyButton.addEventListener('click', handleCopyData);
 
 // Drag and drop functionality
 fileUploader.addEventListener('dragover', (event) => {

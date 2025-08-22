@@ -18,11 +18,9 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body>
-    <header>
+    <main>
         <h1>📄 Document Data Extractor</h1>
         <p>Upload a document image to automatically extract structured data.</p>
-    </header>
-    <main>
         <div class="controls">
             <div class="file-uploader">
                 <label for="file-upload" id="file-label">
@@ -38,6 +36,7 @@
                 <p id="g-sheet-status">Status: Not Connected</p>
                 <button id="export-button" disabled>Export to Sheet</button>
                 <button id="download-csv-button" disabled>Download CSV</button>
+                <button id="copy-button" disabled>Copy Data</button>
                 <div id="export-result" class="hidden"></div>
             </div>
         </div>
